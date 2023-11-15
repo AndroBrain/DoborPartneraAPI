@@ -12,11 +12,9 @@ namespace API.DataAccess.Repositories
     public class MessageRepository : IMessageRepository
     {
         private readonly ISqlDataAccess _db;
-        private readonly IUserRepository _userRepository;
-        public MessageRepository(ISqlDataAccess db, IUserRepository userRepository)
+        public MessageRepository(ISqlDataAccess db)
         {
             _db = db;
-            _userRepository = userRepository;
         }
 
         public async Task AddMessage(int senderId, int receiverId, string message, long timestamp)
@@ -60,7 +58,24 @@ namespace API.DataAccess.Repositories
             parameters = new Dictionary<string, object> {
                 { "@Ids", partnerIds}
             };
-            return await _db.LoadData<Conversation>(sql, parameters);
+         
+            var partners = await _db.LoadData<Conversation>(sql, parameters);
+
+            sql = "SELECT * FROM messages " +
+                "WHERE (from_user = @FromId AND to_user = @ToId) " +
+                "OR (from_user = @ToId AND to_user = @FromId) " +
+                "ORDER BY timestamp DESC " +
+                "LIMIT 10";
+
+            for (int i = 0; i < partners.Count; i++)
+            {
+                parameters = new Dictionary<string, object> {
+                    { "@FromId", userId }, {"@ToId", partners[i].UserId}
+                };
+                partners[i].Messages = await _db.LoadData<Message>(sql, parameters);
+            }
+
+            return partners;
         }
     }
 }

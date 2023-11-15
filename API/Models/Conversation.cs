@@ -11,5 +11,6 @@ namespace API.Models
         public string Name { get; set; } = string.Empty;
         [Column("avatar")]
         public string Avatar { get; set; } = string.Empty;
+        public List<Message> Messages { get; set; }
     }
 }

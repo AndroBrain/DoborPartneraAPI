@@ -37,6 +37,7 @@ namespace API.Controllers
                     Id = conversation.UserId,
                     Name = conversation.Name,
                     Avatar = conversation.Avatar,
+                    messages = conversation.Messages,
                 }
                 )
             );
