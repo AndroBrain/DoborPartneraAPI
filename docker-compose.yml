@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+  postgresql_database:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=ApplicationDatabase
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - ./SQL:/docker-entrypoint-initdb.d
+
+  api:
+    image: datingapplication-api:latest 
+    build:
+      context: .
+      dockerfile: API/Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgresql_database
