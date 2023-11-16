@@ -1,6 +1,6 @@
-﻿namespace API.Dtos
+﻿namespace API.Dtos.Auth
 {
-    public class RegisterDto
+    public class RegisterRequestDto
     {
         public string Email { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;

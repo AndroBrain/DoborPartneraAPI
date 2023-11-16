@@ -1,5 +1,5 @@
 ﻿using API.DataAccess.Repositories;
-using API.Dtos;
+using API.Dtos.Auth;
 using API.Models;
 using API.Services;
 using API.Utils.limiter;
@@ -25,7 +25,7 @@ namespace API.Controllers
         }
 
         [HttpPost, Route("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto credentials)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto credentials)
         {
             await Task.Delay(2000);
             if (!_loginLimiter.CanLogin(credentials.Email))
@@ -48,11 +48,15 @@ namespace API.Controllers
             }
             var account = await _accountRepository.GetAccount(user.Id);
             _loginLimiter.ResetAttempts(credentials.Email);
-            return Ok(new { Token = _tokenGenerator.GenerateToken(credentials.Email), IsProfileFilled = account is not null && account.Avatar.Length != 0 });
+            return Ok(new LoginResponseDto
+            {
+                Token = _tokenGenerator.GenerateToken(credentials.Email),
+                IsProfileFilled = account is not null && account.Avatar.Length != 0,
+            });
         }
 
         [HttpPost, Route("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto credentials)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto credentials)
         {
             if (await _accountRepository.GetUser(credentials.Email) is not null) return BadRequest("Email already taken.");
 
@@ -65,7 +69,7 @@ namespace API.Controllers
                 PasswordSalt = hmac.Key
             };
 
-            var newAccountBaseInfo = new AccountBaseInfo 
+            var newAccountBaseInfo = new AccountBaseInfo
             {
                 Name = credentials.Name,
                 Surname = credentials.Surname,
@@ -75,7 +79,10 @@ namespace API.Controllers
 
             await _accountRepository.AddNewAccount(newAccount, newAccountBaseInfo);
 
-            return Ok(new { Token = _tokenGenerator.GenerateToken(newAccount.Email) });
+            return Ok(new RegisterResponseDto
+            {
+                Token = _tokenGenerator.GenerateToken(newAccount.Email),
+            });
         }
     }
 }
