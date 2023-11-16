@@ -5,8 +5,9 @@ namespace API.DataAccess.Repositories
 {
     public interface IMessageRepository
     {
-        Task AddMessage(int senderId, int receiverId, string message, long timestamp);
+        Task<Message> AddMessage(Message message);
         Task<List<Conversation>> GetConversations(int userId);
+        Task<List<Message>> GetMessages(int ownerId, int receiverId, long timestamp);
     }
 
     public class MessageRepository : IMessageRepository
@@ -17,17 +18,19 @@ namespace API.DataAccess.Repositories
             _db = db;
         }
 
-        public async Task AddMessage(int senderId, int receiverId, string message, long timestamp)
+        public async Task<Message> AddMessage(Message message)
         {
-            var sql = "INSERT INTO messages (from_user, to_user, text, timestamp) VALUES (@FromUser, @ToUser, @Text, @SentTimestamp)";
+            var sql = "INSERT INTO messages (from_user, to_user, text, timestamp) VALUES (@FromUser, @ToUser, @Text, @SentTimestamp) RETURNING id";
 
             var parameters = new Dictionary<string, object> {
-                { "@FromUser", senderId },
-                { "@ToUser", receiverId },
-                { "@Text", message },
-                { "@SentTimestamp", timestamp }
+                { "@FromUser", message.FromUser },
+                { "@ToUser", message.ToUser },
+                { "@Text", message.MessageText },
+                { "@SentTimestamp", message.SentTimestamp }
             };
-            await _db.SaveData(sql, parameters);
+            var id = await _db.SaveDataWithId(sql, parameters);
+            message.Id = id;
+            return message;
         }
 
         public async Task<List<Conversation>> GetConversations(int userId)
@@ -76,6 +79,23 @@ namespace API.DataAccess.Repositories
             }
 
             return partners;
+        }
+
+        public async Task<List<Message>> GetMessages(int ownerId, int receiverId, long timestamp)
+        {
+            var sql = "SELECT * FROM messages " +
+                "WHERE (" +
+                "(from_user = @FromId AND to_user = @ToId) " +
+               "OR (from_user = @ToId AND to_user = @FromId)" +
+                ") " +
+                "AND timestamp < @Timestamp " +
+                "ORDER BY timestamp DESC " +
+                "LIMIT 10";
+            var parameters = new Dictionary<string, object>
+            {
+                {"@FromId", ownerId }, {"@ToId", receiverId }, {"@Timestamp", timestamp}
+            };
+            return await _db.LoadData<Message>(sql, parameters);
         }
     }
 }

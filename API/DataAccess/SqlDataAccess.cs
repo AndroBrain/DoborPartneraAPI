@@ -8,15 +8,15 @@ namespace API.DataAccess
     {
         Task<List<T>> LoadData<T>(string sql, Dictionary<string, object> parameters);
         Task SaveData(string sql, Dictionary<string, object> parameters);
+        Task<int> SaveDataWithId(string sql, Dictionary<string, object> parameters);
         Task UpdateData(string sql, Dictionary<string, object> parameters);
         Task DeleteData(string sql, Dictionary<string, object> parameters);
     }
     public class SqlDataAccess : ISqlDataAccess
     {
+        private readonly string connectionString = "Host=postgresql_database;Username=admin;Password=admin;Database=ApplicationDatabase;";
         public async Task<List<T>> LoadData<T>(string sql, Dictionary<string, object> parameters)
         {
-            string connectionString = "Host=postgresql_database;Username=admin;Password=admin;Database=ApplicationDatabase;";
-
             using (IDbConnection connection = new NpgsqlConnection(connectionString))
             {
                 var data = await connection.QueryAsync<T>(sql, new DynamicParameters(parameters));
@@ -27,6 +27,14 @@ namespace API.DataAccess
         public async Task SaveData(string sql, Dictionary<string, object> parameters)
         {
             await ExecuteSql(sql, parameters);
+        }
+
+        public async Task<int> SaveDataWithId(string sql, Dictionary<string, object> parameters)
+        {
+            using (IDbConnection connection = new NpgsqlConnection(connectionString))
+            {
+                return (int)connection.ExecuteScalar(sql, new DynamicParameters(parameters));
+            }
         }
 
         public async Task UpdateData(string sql, Dictionary<string, object> parameters)
@@ -41,8 +49,6 @@ namespace API.DataAccess
 
         private async Task ExecuteSql(string sql, Dictionary<string, object> parameters)
         {
-            string connectionString = "Host=postgresql_database;Username=admin;Password=admin;Database=ApplicationDatabase";
-
             using (IDbConnection connection = new NpgsqlConnection(connectionString))
             {
                 await connection.ExecuteAsync(sql, new DynamicParameters(parameters));

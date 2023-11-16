@@ -42,5 +42,17 @@ namespace API.Controllers
                 )
             );
         }
+
+        [HttpPost, Route("messages")]
+        public async Task<IActionResult> GetMessages([FromBody] GetMessagesDto dto)
+        {
+            var userId = await _authService.GetUserId(HttpContext);
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            var messages = await _messageRepository.GetMessages(userId.Value, dto.Id, dto.LastMessageTimestamp);
+            return Ok(new {Messages = messages, CanLoadMore = messages.Count >= 10});
+        }
     }
 }

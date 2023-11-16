@@ -1,4 +1,5 @@
 ﻿using API.DataAccess.Repositories;
+using API.Models;
 using API.Services;
 using API.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -40,14 +41,22 @@ namespace API.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task SendMessage(int receiverId, string message)
+        public async Task SendMessage(int receiverId, string messageText)
         {
             var senderEmail = Context.User.FindFirstValue(ClaimTypes.Email);
             var senderId = await _userRepository.GetUserId(senderEmail);
+            var timestamp = DateTimeOffset.Now.ToUnixTimeMicroseconds();
+            var message = new Message
+            {
+                FromUser = senderId.Value,
+                ToUser = receiverId,
+                MessageText = messageText,
+                SentTimestamp = timestamp
+            };
+            await _messageRepository.AddMessage(message);
 
-            await _messageRepository.AddMessage(senderId.Value, receiverId, message, DateTimeOffset.Now.ToUnixTimeMicroseconds());
-
-            await Clients.Group(receiverId.ToString()).SendAsync("ReceiveMessage", receiverId, senderId, message);
+            await Clients.Group(receiverId.ToString()).SendAsync("ReceiveMessage", message.Id,receiverId, senderId, message.MessageText, timestamp);
+            await Clients.Group(senderId.Value.ToString()).SendAsync("ReceiveMessage",message.Id, receiverId, senderId, message.MessageText, timestamp);
         }
     }
 }
