@@ -1,5 +1,6 @@
 ﻿using API.DataAccess.Repositories;
 using API.Dtos;
+using API.Dtos.Account;
 using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +24,7 @@ namespace API.Controllers
 
 
         [HttpPost, Route("info")]
-        public async Task<IActionResult> SetInfo([FromBody] SetAccountInfoDto info)
+        public async Task<IActionResult> SetInfo([FromBody] SetAccountInfoRequestDto info)
         {
             var userId = await _authService.GetUserId(HttpContext);
 
