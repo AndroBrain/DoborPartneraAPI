@@ -1,5 +1,5 @@
 ﻿using API.DataAccess.Repositories;
-using API.Dtos;
+using API.Dtos.Messge;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +32,7 @@ namespace API.Controllers
             var conversations = await _messageRepository.GetConversations(userId.Value);
 
             return Ok(
-                conversations.ConvertAll(conversation => new ConversationDto
+                conversations.ConvertAll(conversation => new ProfileWithMessagesDto
                 {
                     Id = conversation.UserId,
                     Name = conversation.Name,
@@ -44,7 +44,7 @@ namespace API.Controllers
         }
 
         [HttpPost, Route("messages")]
-        public async Task<IActionResult> GetMessages([FromBody] GetMessagesDto dto)
+        public async Task<IActionResult> GetMessages([FromBody] GetMessagesRequestDto dto)
         {
             var userId = await _authService.GetUserId(HttpContext);
             if (userId is null)
@@ -52,7 +52,18 @@ namespace API.Controllers
                 return Unauthorized();
             }
             var messages = await _messageRepository.GetMessages(userId.Value, dto.Id, dto.LastMessageTimestamp);
-            return Ok(new {Messages = messages, CanLoadMore = messages.Count >= 10});
+            return Ok(new GetMessagesResponseDto
+            {
+                Messages = messages.ConvertAll(message => new MessageDto
+                {
+                    Id = message.Id,
+                    FromUser = message.FromUser,
+                    ToUser = message.ToUser,
+                    MessageText = message.MessageText,
+                    SentTimestamp = message.SentTimestamp,
+                }),
+                CanLoadMore = messages.Count >= 10
+            });
         }
     }
 }
