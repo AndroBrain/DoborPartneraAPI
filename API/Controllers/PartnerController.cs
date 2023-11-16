@@ -1,5 +1,5 @@
 ﻿using API.DataAccess.Repositories;
-using API.Dtos;
+using API.Dtos.Partner;
 using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +25,7 @@ namespace API.Controllers
         }
 
         [HttpPost, Route("decline")]
-        public async Task<IActionResult> Decline([FromBody] DeclineDto decline)
+        public async Task<IActionResult> Decline([FromBody] DeclineRequestDto decline)
         {
             var userId = await _authService.GetUserId(HttpContext);
             if (userId is null)
@@ -71,7 +71,7 @@ namespace API.Controllers
         }
 
         [HttpPost, Route("match")]
-        public async Task<IActionResult> GetMatch([FromBody] GetMatchDto matchDto)
+        public async Task<IActionResult> GetMatch([FromBody] GetMatchRequestDto matchDto)
         {
             var userId = await _authService.GetUserId(HttpContext);
             if (userId is null)
