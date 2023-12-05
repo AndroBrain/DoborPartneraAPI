@@ -7,6 +7,7 @@ namespace API.DataAccess.Repositories
         Task<UserAccount?> GetUser(string email);
         Task AddNewAccount(UserAccount newAccount, AccountBaseInfo newAccountBaseInfo);
         Task UpdateAccount(int id, UserUpdateInfo info);
+        Task SetTest(Test test);
         Task<AccountInfo?> GetAccount(int id);
         Task<List<string>> GetImages(int id);
         Task<List<string>> GetInterests(int id);
@@ -30,7 +31,8 @@ namespace API.DataAccess.Repositories
             if (user == null || user.Id == 0)
             {
                 return null;
-            } else
+            }
+            else
             {
                 return user;
             }
@@ -62,7 +64,7 @@ namespace API.DataAccess.Repositories
         public async Task UpdateAccount(int id, UserUpdateInfo info)
         {
             var sql = "UPDATE users_info SET description = @Description, avatar = @Avatar WHERE user_id = @UserId";
-            var parameters = new Dictionary<string, object> { { "@UserId", id }, { "@Description", info.Description}, { "@Avatar", info.Avatar } };
+            var parameters = new Dictionary<string, object> { { "@UserId", id }, { "@Description", info.Description }, { "@Avatar", info.Avatar } };
             await _db.UpdateData(sql, parameters);
 
             sql = "DELETE FROM user_images WHERE user_id = @UserId";
@@ -70,8 +72,8 @@ namespace API.DataAccess.Repositories
             await _db.DeleteData(sql, parameters);
 
             sql = "INSERT INTO user_images (user_id, url) VALUES (@UserId, @Url)";
-            foreach(string image in info.Images)
-            { 
+            foreach (string image in info.Images)
+            {
                 parameters = new Dictionary<string, object> { { "@UserId", id }, { "@Url", image } };
                 await _db.SaveData(sql, parameters);
             }
@@ -86,6 +88,20 @@ namespace API.DataAccess.Repositories
                 parameters = new Dictionary<string, object> { { "@UserId", id }, { "@Interest", interest } };
                 await _db.SaveData(sql, parameters);
             }
+        }
+
+        public async Task SetTest(Test test)
+        {
+            var sql = "INSERT INTO tests (user_id, eyes, hair, tattoo, sport, education, recreation, family, charity, people, wedding ,belief, money, religious, mind, humour)" +
+                "VALUES (@UserId, @Eyes, @Hair, @Tattoo, @Sport, @Education, @Recreation, @Family, @Charity, @People, @Wedding, @Belief, @Money, @Religious, @Mind, @Humour)";
+            var parameters = new Dictionary<string, object> {
+                { "@UserId", test.UserId }, { "@Eyes", test.Eyes }, { "@Hair", test.Hair },
+                { "@Tattoo", test.Tattoo }, { "@Sport", test.Sport }, { "@Education", test.Education },
+                { "@Recreation", test.Recreation }, { "@Family", test.Family }, { "Charity", test.Charity},
+                { "@People", test.People }, { "@Wedding", test.Wedding }, { "@Belief", test.Belief },
+                { "@Money", test.Money },{ "@Religious", test.Religious },{ "@Mind", test.Mind }, { "@Humour", test.Humour },
+            };
+            await _db.SaveData(sql, parameters);
         }
 
         public async Task<AccountInfo?> GetAccount(int id)

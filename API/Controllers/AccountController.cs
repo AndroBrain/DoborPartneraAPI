@@ -1,11 +1,9 @@
 ﻿using API.DataAccess.Repositories;
-using API.Dtos;
 using API.Dtos.Account;
 using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -51,29 +49,59 @@ namespace API.Controllers
         {
             var userId = await _authService.GetUserId(HttpContext);
 
-            if (userId is not null)
+            if (userId is null)
             {
-                var user = await _accountRepository.GetAccount(userId.Value);
-                if (user is null)
+                return Unauthorized();
+            }
+
+            var user = await _accountRepository.GetAccount(userId.Value);
+            if (user is null)
+            {
+                return NotFound();
+            }
+            var images = await _accountRepository.GetImages(userId.Value);
+            var interests = await _accountRepository.GetInterests(userId.Value);
+            return Ok(new AccountInfoDto
+            {
+                Name = user.Name,
+                Surname = user.Surname,
+                Description = user.Description,
+                Avatar = user.Avatar,
+                Images = images,
+                Interests = interests,
+            });
+        }
+
+        [HttpPost, Route("test")]
+        public async Task<IActionResult> SetTest([FromBody] SetTestRequestDto test)
+        {
+            var userId = await _authService.GetUserId(HttpContext);
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            await _accountRepository.SetTest(
+                new Test
                 {
-                    return NotFound();
+                    UserId = userId.Value,
+                    Eyes = test.Eyes,
+                    Hair = test.Hair,
+                    Tattoo = test.Tattoo,
+                    Sport = test.Sport,
+                    Education = test.Education,
+                    Recreation = test.Recreation,
+                    Family = test.Family,
+                    Charity = test.Charity,
+                    People = test.People,
+                    Wedding = test.Wedding,
+                    Belief = test.Belief,
+                    Money = test.Money,
+                    Religious = test.Religious,
+                    Mind = test.Mind,
+                    Humour = test.Humour,
                 }
-                var images = await _accountRepository.GetImages(userId.Value);
-                var interests = await _accountRepository.GetInterests(userId.Value);
-                return Ok(new AccountInfoDto
-                {
-                    Name = user.Name,
-                    Surname = user.Surname,
-                    Description = user.Description,
-                    Avatar = user.Avatar,
-                    Images = images,
-                    Interests = interests,
-                });
-            }
-            else
-            {
-                return StatusCode(500);
-            }
+            );
+            return Ok();
         }
     }
 }

@@ -67,3 +67,26 @@ CREATE TABLE declined_matches
   FOREIGN KEY(declined_user_id)
     REFERENCES users(id)
 );
+
+CREATE TABLE tests
+(
+  id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id INT,
+  eyes INT,
+  hair INT,
+  tattoo INT,
+  sport INT,
+  education INT,
+  recreation INT,
+  family INT,
+  charity INT,
+  people INT,
+  wedding INT,
+  belief INT,
+  money INT,
+  religious INT,
+  mind INT,
+  humour INT,
+  FOREIGN KEY(user_id)
+    REFERENCES users(id)
+);

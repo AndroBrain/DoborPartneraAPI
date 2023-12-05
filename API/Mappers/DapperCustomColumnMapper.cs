@@ -15,6 +15,7 @@ namespace API.Mapping
                 typeof(Message),
                 typeof(Match),
                 typeof(Conversation),
+                typeof(Test),
             };
 
             foreach(var modelType in modelTypes)
