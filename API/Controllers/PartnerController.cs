@@ -45,8 +45,13 @@ namespace API.Controllers
             {
                 return Unauthorized();
             }
+            var userBaseInfo = await _accountRepository.GetAccountBaseInfo(userId.Value);
+            if (userBaseInfo is null || userBaseInfo.Gender is null)
+            {
+                return Unauthorized();
+            }
             var matches = new List<MatchDto>();
-            foreach (Match match in (await _partnerRepository.GetMatches(userId.Value)))
+            foreach (Match match in (await _partnerRepository.GetMatches(userId.Value, userBaseInfo.Gender, userBaseInfo.Birthdate)))
             {
                 var images = await _accountRepository.GetImages(match.UserId);
                 var interests = await _accountRepository.GetInterests(match.UserId);

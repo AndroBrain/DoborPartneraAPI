@@ -8,7 +8,7 @@ namespace API.DataAccess.Repositories
     {
         Task DeclineUser(int userId, int declinedUserId);
         Task<Match?> GetMatch(int id);
-        Task<List<Match>> GetMatches(int id);
+        Task<List<Match>> GetMatches(int id, string gender, DateTime birthdate);
     }
 
     public class PartnerRepository : IPartnerRepository
@@ -40,14 +40,27 @@ namespace API.DataAccess.Repositories
             return (await _db.LoadData<Match>(sql, parameters)).FirstOrDefault();
         }
 
-        public async Task<List<Match>> GetMatches(int id)
+        public async Task<List<Match>> GetMatches(int id, string gender, DateTime birthdate)
         {
-            var sql = "SELECT user_id, name, birthdate, description, avatar FROM users_info " +
+            DateTime minDate = birthdate;
+            DateTime maxDate = birthdate;
+            if (gender == "MALE")
+            {
+                minDate = birthdate.AddYears(-5);
+                maxDate = birthdate.AddYears(-2);
+            } else if (gender == "FEMALE")
+            {
+                minDate = birthdate.AddYears(2);
+                maxDate = birthdate.AddYears(5);
+            }
+            var sql = "SELECT user_id, name, gender, birthdate, description, avatar FROM users_info " +
                 "WHERE NOT user_id = @UserId " +
                 "AND user_id NOT IN (SELECT declined_user_id FROM declined_matches WHERE user_id = @UserId) " +
+                "AND gender != @Gender " +
+                "AND (birthdate BETWEEN @MinDate AND @MaxDate)" +
                 "AND description IS NOT NULL " +
                 "AND avatar IS NOT NULL";
-            var parameters = new Dictionary<string, object> { { "@UserId", id } };
+            var parameters = new Dictionary<string, object> { { "@UserId", id }, { "@Gender", gender }, { "@MinDate", minDate }, { "MaxDate", maxDate } };
 
             var accounts = await _db.LoadData<Match>(sql, parameters);
 

@@ -11,6 +11,7 @@ namespace API.DataAccess.Repositories
         Task<AccountInfo?> GetAccount(int id);
         Task<List<string>> GetImages(int id);
         Task<List<string>> GetInterests(int id);
+        Task<AccountBaseInfo?> GetAccountBaseInfo(int id);
     }
 
     public class AccountRepository : IAccountRepository
@@ -127,6 +128,14 @@ namespace API.DataAccess.Repositories
             var parameters = new Dictionary<string, object> { { "@UserId", id } };
 
             return await _db.LoadData<string>(sql, parameters);
+        }
+
+        public async Task<AccountBaseInfo?> GetAccountBaseInfo(int id)
+        {
+            var sql = "SELECT user_id, name, surname, gender, birthdate FROM users_info WHERE user_id = @UserId";
+            var parameters = new Dictionary<string, object> { { "@UserId", id } };
+            var accounts = await _db.LoadData<AccountBaseInfo>(sql, parameters);
+            return accounts.SingleOrDefault();
         }
     }
 }
