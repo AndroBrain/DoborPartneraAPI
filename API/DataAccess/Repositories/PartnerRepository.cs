@@ -46,18 +46,18 @@ namespace API.DataAccess.Repositories
             DateTime maxDate = birthdate;
             if (gender == "MALE")
             {
-                minDate = birthdate.AddYears(-5);
-                maxDate = birthdate.AddYears(-2);
-            } else if (gender == "FEMALE")
-            {
                 minDate = birthdate.AddYears(2);
                 maxDate = birthdate.AddYears(5);
+            } else if (gender == "FEMALE")
+            {
+                minDate = birthdate.AddYears(-5);
+                maxDate = birthdate.AddYears(-2);
             }
             var sql = "SELECT user_id, name, gender, birthdate, description, avatar FROM users_info " +
                 "WHERE NOT user_id = @UserId " +
                 "AND user_id NOT IN (SELECT declined_user_id FROM declined_matches WHERE user_id = @UserId) " +
                 "AND gender != @Gender " +
-                "AND (birthdate BETWEEN @MinDate AND @MaxDate)" +
+                "AND (birthdate BETWEEN @MinDate AND @MaxDate) " +
                 "AND description IS NOT NULL " +
                 "AND avatar IS NOT NULL";
             var parameters = new Dictionary<string, object> { { "@UserId", id }, { "@Gender", gender }, { "@MinDate", minDate }, { "MaxDate", maxDate } };
